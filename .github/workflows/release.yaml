@@ -37,6 +37,7 @@ jobs:
           Invoke-WebRequest $url -OutFile .\rustup-init.exe
           if ((Get-FileHash .\rustup-init.exe -Algorithm SHA256).Hash -eq $hash) {
             .\rustup-init.exe -y --no-update-default-toolchain
+            Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.cargo\bin"
           } else {
             Write-Host "The SHA256 digest does not match."
             Exit 1

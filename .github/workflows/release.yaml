@@ -30,7 +30,14 @@ jobs:
       # https://github.com/dtolnay/rust-toolchain/issues/143
       - if: ${{ matrix.os == 'windows-11-arm' }}
         name: Install rustup
-        run: winget install -e --id Rustlang.Rustup
+        shell: pwsh
+        run: |
+          $url = 'https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
+          $hash = '7B83039A1B9305B0C50F23B2E2F03319B8D7859B28106E49BA82C06D81289DF6'
+          Invoke-WebRequest $url -OutFile .\rustup-init.exe
+          $fileHash = Get-FileHash .\rustup-init.exe -Algorithm SHA256
+          $fileHash.Hash -eq $hash
+          .\rustup-init.exe
 
       - name: Setup Rust
         run: rustup install

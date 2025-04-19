@@ -10,34 +10,53 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+          - macos-15
+          - windows-2022
+          - windows-11-arm
 
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
+    defaults:
+      run:
+        working-directory: rustowl
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # We don't have rustup on the Windows 11 Arm64 runner yet, so manually installing it.
+      - if: ${{ matrix.os == 'windows-11-arm' }}
+        name: Install rustup
+        shell: pwsh
+        run: |
+          # Sadly we don't have versioned download link for rustup-init, please update the hash once it changed ;)
+          $url = 'https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
+          $hash = '9054AD509637940709107920176F14CEE334BC5CFE50BC0A24A3DC59B6F4D458'
+          Invoke-WebRequest $url -OutFile .\rustup-init.exe
+          if ((Get-FileHash .\rustup-init.exe -Algorithm SHA256).Hash -eq $hash) {
+            .\rustup-init.exe -y --no-update-default-toolchain
+            Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.cargo\bin"
+          } else {
+            Write-Host "The SHA256 digest does not match."
+            Exit 1
+          }
+
       - name: Setup Rust
         run: rustup install
-        working-directory: rustowl
       - name: Build
         run: cargo build --release
-        working-directory: rustowl
 
       - name: Set host tuple to env
         shell: bash
         run: echo "host_tuple=$(rustc --print=host-tuple)" >> $GITHUB_ENV
-        working-directory: rustowl
       - name: Rename artifacts
         shell: bash
         run: |
           mkdir -p bin
-          for f in $(find rustowl/target/release -maxdepth 1 -perm -111 -type f); do
+          for f in $(find target/release -maxdepth 1 -perm -111 -type f); do
             BASENAME="$(basename "$f")"
             NAME="${BASENAME%%.*}";
             mv "$f" "bin/$NAME-${{ env.host_tuple }}";
@@ -47,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rustowl-bin-${{ env.host_tuple }}
-          path: bin/*
+          path: rustowl/bin/*
 
 
   vscode:

@@ -19,27 +19,27 @@ jobs:
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
+    defaults:
+      run:
+        working-directory: rustowl
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Rust
-        run: rustup install
-        working-directory: rustowl
+        uses: dtolnay/rust-toolchain@stable
       - name: Build
         run: cargo build --release
-        working-directory: rustowl
 
       - name: Set host tuple to env
         shell: bash
         run: echo "host_tuple=$(rustc --print=host-tuple)" >> $GITHUB_ENV
-        working-directory: rustowl
       - name: Rename artifacts
         shell: bash
         run: |
           mkdir -p bin
-          for f in $(find rustowl/target/release -maxdepth 1 -perm -111 -type f); do
+          for f in $(find target/release -maxdepth 1 -perm -111 -type f); do
             BASENAME="$(basename "$f")"
             NAME="${BASENAME%%.*}";
             mv "$f" "bin/$NAME-${{ env.host_tuple }}";
@@ -49,7 +49,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rustowl-bin-${{ env.host_tuple }}
-          path: bin/*
+          path: rustowl/bin/*
 
 
   vscode:

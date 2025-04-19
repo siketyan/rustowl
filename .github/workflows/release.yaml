@@ -33,11 +33,14 @@ jobs:
         shell: pwsh
         run: |
           $url = 'https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
-          $hash = '7B83039A1B9305B0C50F23B2E2F03319B8D7859B28106E49BA82C06D81289DF6'
+          $hash = '9054AD509637940709107920176F14CEE334BC5CFE50BC0A24A3DC59B6F4D458'
           Invoke-WebRequest $url -OutFile .\rustup-init.exe
-          $fileHash = Get-FileHash .\rustup-init.exe -Algorithm SHA256
-          $fileHash.Hash -eq $hash
-          .\rustup-init.exe
+          if ((Get-FileHash .\rustup-init.exe -Algorithm SHA256).Hash -eq $hash) {
+            .\rustup-init.exe
+          } else {
+            Write-Host "The SHA256 digest does not match."
+            Exit 1
+          }
 
       - name: Setup Rust
         run: rustup install

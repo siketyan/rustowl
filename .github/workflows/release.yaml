@@ -36,7 +36,7 @@ jobs:
           $hash = '9054AD509637940709107920176F14CEE334BC5CFE50BC0A24A3DC59B6F4D458'
           Invoke-WebRequest $url -OutFile .\rustup-init.exe
           if ((Get-FileHash .\rustup-init.exe -Algorithm SHA256).Hash -eq $hash) {
-            .\rustup-init.exe
+            .\rustup-init.exe -y --no-update-default-toolchain
           } else {
             Write-Host "The SHA256 digest does not match."
             Exit 1

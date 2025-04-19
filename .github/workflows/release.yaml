@@ -27,8 +27,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # https://github.com/dtolnay/rust-toolchain/issues/143
+      - if: ${{ matrix.os == 'windows-11-arm' }}
+        name: Install rustup
+        run: winget install -e --id Rustlang.Rustup
+
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        run: rustup install
       - name: Build
         run: cargo build --release
 

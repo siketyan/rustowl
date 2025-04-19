@@ -30,19 +30,17 @@ jobs:
       # We don't have rustup on the Windows 11 Arm64 runner yet, so manually installing it.
       - if: ${{ matrix.os == 'windows-11-arm' }}
         name: Install rustup
-        shell: pwsh
         run: |
-          # Sadly we don't have versioned download link for rustup-init, please update the hash once it changed ;)
-          $url = 'https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
-          $hash = '9054AD509637940709107920176F14CEE334BC5CFE50BC0A24A3DC59B6F4D458'
-          Invoke-WebRequest $url -OutFile .\rustup-init.exe
-          if ((Get-FileHash .\rustup-init.exe -Algorithm SHA256).Hash -eq $hash) {
+          URL='https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
+          HASH="$(curl -sSL "${URL}.sha256")"
+          curl -sSL -o .\rustup-init.exe "${URL}"
+          if [ "$(sha256sum .\rustup-init.exe)" = "${HASH}" ]; then
             .\rustup-init.exe -y --no-update-default-toolchain
-            Add-Content -Path $env:GITHUB_PATH -Value "$env:USERPROFILE\.cargo\bin"
-          } else {
-            Write-Host "The SHA256 digest does not match."
-            Exit 1
-          }
+            echo "${USERPROFILE}\.cargo\bin" >> "${GITHUB_PATH}"
+          else
+            echo "::error::The SHA256 digest does not match."
+            exit 1
+          fi
 
       - name: Setup Rust
         run: rustup install

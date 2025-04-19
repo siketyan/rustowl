@@ -36,7 +36,7 @@ jobs:
           HASH="$(curl -sSL "${URL}.sha256")"
           curl -sSL -o .\rustup-init.exe "${URL}"
           if [ "$(sha256sum .\rustup-init.exe | cut -d' ' -f 1)" = "${HASH}" ]; then
-            .\\rustup-init.exe -y --no-update-default-toolchain
+            rustup-init.exe -y --no-update-default-toolchain
             echo "${USERPROFILE}\.cargo\bin" >> "${GITHUB_PATH}"
           else
             echo "::error::The SHA256 digest does not match."

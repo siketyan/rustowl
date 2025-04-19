@@ -30,6 +30,7 @@ jobs:
       # We don't have rustup on the Windows 11 Arm64 runner yet, so manually installing it.
       - if: ${{ matrix.os == 'windows-11-arm' }}
         name: Install rustup
+        shell: bash
         run: |
           URL='https://static.rust-lang.org/rustup/dist/aarch64-pc-windows-msvc/rustup-init.exe'
           HASH="$(curl -sSL "${URL}.sha256")"
